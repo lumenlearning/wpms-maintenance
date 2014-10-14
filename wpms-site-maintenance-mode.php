@@ -127,6 +127,7 @@ class wpms_sitemaint {
 
 		$settings = compact('sitemaint','retryafter','message');
 
+		$changed = false;
 		foreach( $settings as $setting => $value ) {
 			if ( $this->$setting != $value ) {
 				$changed = true;
