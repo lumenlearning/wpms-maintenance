@@ -89,7 +89,11 @@ class wpms_sitemaint {
 
 	function save_settings() {
 		global $wpdb, $updated, $configerror;
-		check_admin_referer();
+
+		if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'wpms-site-maintenance-mode' ) ) {
+			die('Invalid nonce');
+		}
+
 		// validate all input!
 		if ( preg_match( '/^[0-9]+$/', $_POST['sitemaint'] ) ) {
 			$sitemaint = intval( $_POST['sitemaint'] );
@@ -216,6 +220,7 @@ if ($this->sitemaint == 3) { ?>
   <p><em><?php _e('The site will remain fully functional for admin users.'); ?> <span style="color:#CC0000;"><?php _e('Do not log out while the site is down!'); ?></span><br />
   <?php _e('If you log out (and lock yourself out of the site) visit'); ?> <?php bloginfo_rss('url') ?>/wp-login.php <?php _e('to log back in.'); ?></em></p>
   <form name="sitemaintform" method="post" action="">
+  	<input type="hidden" name="_wpnonce" value="<?php print wp_create_nonce('wpms-site-maintenance-mode'); ?>" />
     <p><label><input type="radio" name="sitemaint" value="0"<?php checked(0, $this->sitemaint); ?> /> <?php _e('SITE UP (Normal Operation)'); ?></label><br />
        <label><input type="radio" name="sitemaint" value="1"<?php checked(1, $this->sitemaint); ?> /> <?php _e('USER BLOGS DOWN, MAIN BLOG UP!'); ?></label><br />
        <label><input type="radio" name="sitemaint" value="2"<?php checked(2, $this->sitemaint); ?> /> <?php _e('MAIN BLOG DOWN, USER BLOGS UP!'); ?></label><br />
