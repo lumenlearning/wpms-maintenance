@@ -200,46 +200,57 @@ class wpms_sitemaint {
 			}
 		}
 
-		if ($this->updated) { ?>
-<div id="message" class="updated fade"><p><?php _e('Options saved.') ?></p></div>
-<?php	} elseif (is_array($configerror)) { ?>
-<div class="error"><p><?php echo implode('<br />',$configerror); ?></p></div>
-<?php }
-if ($this->sitemaint == 1) { ?>
-  <div class="error"><p><?php _e('WARNING: YOUR USER BLOGS ARE CURRENTLY DOWN!'); ?></p></div>
-<?php }
-if ($this->sitemaint == 2) { ?>
-  <div class="error"><p><?php _e('WARNING: YOUR MAIN BLOG IS CURRENTLY DOWN!'); ?></p></div>
-<?php }
-if ($this->sitemaint == 3) { ?>
-  <div class="error"><p><?php _e('WARNING: YOUR ENTIRE SITE IS CURRENTLY DOWN!'); ?></p></div>
-<?php } ?>
-<div class="wrap">
-  <h2><?php _e('WPMS Site Maintenace'); ?></h2>
-  <fieldset>
-  <p><?php _e('This plugin shuts down your site for maintenance by sending feed readers, bots, and browsers an http response code 503 and the Retry-After header'); ?> (<a href="ftp://ftp.isi.edu/in-notes/rfc2616.txt" target="_blank">rfc2616</a>). <?php _e('It displays your message except when feeds, trackbacks, or other xml pages are requested.'); ?></p>
-  <p><?php _e('Choose site UP or DOWN, retry time (in minutes) and your message.'); ?></p>
-  <p><em><?php _e('The site will remain fully functional for admin users.'); ?> <span style="color:#CC0000;"><?php _e('Do not log out while the site is down!'); ?></span><br />
-  <?php _e('If you log out (and lock yourself out of the site) visit'); ?> <?php bloginfo_rss('url') ?>/wp-login.php <?php _e('to log back in.'); ?></em></p>
-  <form name="sitemaintform" method="post" action="">
-  	<input type="hidden" name="_wpnonce" value="<?php print wp_create_nonce('wpms-site-maintenance-mode'); ?>" />
-    <p><label><input type="radio" name="sitemaint" value="0"<?php checked(0, $this->sitemaint); ?> /> <?php _e('SITE UP (Normal Operation)'); ?></label><br />
-       <label><input type="radio" name="sitemaint" value="1"<?php checked(1, $this->sitemaint); ?> /> <?php _e('USER BLOGS DOWN, MAIN BLOG UP!'); ?></label><br />
-       <label><input type="radio" name="sitemaint" value="2"<?php checked(2, $this->sitemaint); ?> /> <?php _e('MAIN BLOG DOWN, USER BLOGS UP!'); ?></label><br />
-       <label><input type="radio" name="sitemaint" value="3"<?php checked(3, $this->sitemaint); ?> /> <?php _e('ENTIRE SITE DOWN!'); ?></label></p>
-    <p><label><?php _e('Retry After'); ?> <input name="retryafter" type="text" id="retryafter" value="<?php echo $this->retryafter; ?>" size="3" /> <?php _e('minutes.'); ?></label></p>
-    <p><label><?php _e('HTML page displayed to site visitors:'); ?><br />
-      <textarea name="message" cols="125" rows="10" id="message"><?php echo stripslashes($this->message); ?></textarea></label></p>
-	<p>&nbsp;</p>
-	<p><label><input name="reset" type="checkbox" value="1" /> <?php _e('Reset all settings to default'); ?></label></p>
-    <p class="submit">
-      <input name="action" type="hidden" id="action" value="update" />
-      <input type="submit" name="Submit" value="Update Settings" />
-    </p>
-  </form>
-  </fieldset>
-</div>
-<?php
+		if ($this->updated) {
+			print '<div id="message" class="updated fade"><p>' . __('Options saved.') . '</p></div>';
+		}
+
+		if ( !empty( $configerror ) ) {
+			print '<div class="error"><p>' . implode('<br />',$configerror) . '</p></div>';
+		}
+
+		switch ( $this->sitemaint ) {
+			case 1:
+	  		print '<div class="error"><p>' . __('WARNING: YOUR USER BLOGS ARE CURRENTLY DOWN!') . '</p></div>';
+	  		break;
+	  	case 2:
+				print '<div class="error"><p>' . __('WARNING: YOUR MAIN BLOG IS CURRENTLY DOWN!') . '</p></div>';
+				break;
+			case 3:
+				print '<div class="error"><p>' . __('WARNING: YOUR ENTIRE SITE IS CURRENTLY DOWN!') . '</p></div>';
+				break;
+			}
+
+			$this->adminform();
+	}
+
+	function adminform() {
+		?>
+		<div class="wrap">
+		  <h2><?php _e('WPMS Site Maintenace'); ?></h2>
+		  <fieldset>
+		  <p><?php _e('This plugin shuts down your site for maintenance by sending feed readers, bots, and browsers an http response code 503 and the Retry-After header'); ?> (<a href="ftp://ftp.isi.edu/in-notes/rfc2616.txt" target="_blank">rfc2616</a>). <?php _e('It displays your message except when feeds, trackbacks, or other xml pages are requested.'); ?></p>
+		  <p><?php _e('Choose site UP or DOWN, retry time (in minutes) and your message.'); ?></p>
+		  <p><em><?php _e('The site will remain fully functional for admin users.'); ?> <span style="color:#CC0000;"><?php _e('Do not log out while the site is down!'); ?></span><br />
+		  <?php _e('If you log out (and lock yourself out of the site) visit'); ?> <?php bloginfo_rss('url') ?>/wp-login.php <?php _e('to log back in.'); ?></em></p>
+		  <form name="sitemaintform" method="post" action="">
+		  	<input type="hidden" name="_wpnonce" value="<?php print wp_create_nonce('wpms-site-maintenance-mode'); ?>" />
+		    <p><label><input type="radio" name="sitemaint" value="0"<?php checked(0, $this->sitemaint); ?> /> <?php _e('SITE UP (Normal Operation)'); ?></label><br />
+		       <label><input type="radio" name="sitemaint" value="1"<?php checked(1, $this->sitemaint); ?> /> <?php _e('USER BLOGS DOWN, MAIN BLOG UP!'); ?></label><br />
+		       <label><input type="radio" name="sitemaint" value="2"<?php checked(2, $this->sitemaint); ?> /> <?php _e('MAIN BLOG DOWN, USER BLOGS UP!'); ?></label><br />
+		       <label><input type="radio" name="sitemaint" value="3"<?php checked(3, $this->sitemaint); ?> /> <?php _e('ENTIRE SITE DOWN!'); ?></label></p>
+		    <p><label><?php _e('Retry After'); ?> <input name="retryafter" type="text" id="retryafter" value="<?php echo $this->retryafter; ?>" size="3" /> <?php _e('minutes.'); ?></label></p>
+		    <p><label><?php _e('HTML page displayed to site visitors:'); ?><br />
+		      <textarea name="message" cols="125" rows="10" id="message"><?php echo stripslashes($this->message); ?></textarea></label></p>
+			<p>&nbsp;</p>
+			<p><label><input name="reset" type="checkbox" value="1" /> <?php _e('Reset all settings to default'); ?></label></p>
+		    <p class="submit">
+		      <input name="action" type="hidden" id="action" value="update" />
+		      <input type="submit" name="Submit" value="Update Settings" />
+		    </p>
+		  </form>
+		  </fieldset>
+		</div>
+		<?php
 	}
 }
 
