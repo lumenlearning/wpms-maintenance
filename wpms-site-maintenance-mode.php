@@ -185,7 +185,7 @@ class wpms_sitemaint {
 			die(__('<p>You do not have permission to access this page.</p>'));
 		}
 
-		if ( $_POST['action'] == 'update' ) {
+		if ( ! empty( $_POST['action'] ) && $_POST['action'] == 'update' ) {
 			if ( empty( $_POST['reset'] ) ) {
 				$this->save_settings();
 			}
