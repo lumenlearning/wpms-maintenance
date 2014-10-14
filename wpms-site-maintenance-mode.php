@@ -177,7 +177,7 @@ class wpms_sitemaint {
 
 		header('HTTP/1.1 503 Service Unavailable');
 		header('Retry-After: ' . $this->retryafter * 60 ); //seconds
-		if ( !$this->urlend( 'feed/' ) && !$this->urlend( 'trackback/' ) && !$dthis->urlend( 'xmlrpc.php' ) ) {
+		if ( !$this->urlend( 'feed/' ) && !$this->urlend( 'trackback/' ) && !$this->urlend( 'xmlrpc.php' ) ) {
 			echo stripslashes($this->message);
 		}
 		exit();
