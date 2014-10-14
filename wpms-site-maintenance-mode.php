@@ -31,17 +31,19 @@ class wpms_sitemaint {
 	var $message;
 
 	function wpms_sitemaint() {
-		add_action('init',array(&$this,'wpms_sitemaint_init'),1);
-		add_action('network_admin_menu',array(&$this,'add_admin_subpanel'));
+		add_action( 'init', array( &$this,'wpms_sitemaint_init' ), 1 );
+		add_action( 'network_admin_menu', array( &$this, 'add_admin_subpanel' ) );
 	}
 
 	function wpms_sitemaint_init() {
 		$this->apply_settings();
-		if ($this->sitemaint) return $this->shutdown();
+		if ( $this->sitemaint ) {
+			return $this->shutdown();
+		}
 	}
 
 	function add_admin_subpanel() {
-		add_submenu_page('settings.php', __('WPMS Site Shutdown'), __('WPMS Sitedown'), 'manage_network_options', 'wpms_site_maint', array(&$this,'adminpage'));
+		add_submenu_page( 'settings.php', __('WPMS Site Shutdown'), __('WPMS Sitedown'), 'manage_network_options', 'wpms_site_maint', array( &$this, 'adminpage' ) );
 	}
 
 	function set_defaults() {
@@ -52,17 +54,17 @@ class wpms_sitemaint {
 		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 		<html xmlns="http://www.w3.org/1999/xhtml">
 		<head>
-			<title>' . get_site_option('site_name') . ' is undergoing routine maintenance</title>
-			<meta http-equiv="Content-Type" content="' . get_bloginfo('html_type') . '; ' . get_bloginfo('charset') . '" />
+			<title>' . get_site_option( 'site_name' ) . ' is undergoing routine maintenance</title>
+			<meta http-equiv="Content-Type" content="' . get_bloginfo( 'html_type' ) . '; ' . get_bloginfo( 'charset' ) . '" />
 			<link rel="stylesheet" href="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/css/style.css" type="text/css" media="screen" />
 		</head>
 		<body>
- 
+
 			<div id="content-outer">
 				<div id="content">
-					<img src="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/images/coffee_machine-256.png" class="motivation-maker" />	
+					<img src="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/images/coffee_machine-256.png" class="motivation-maker" />
 					<h1>We are on a quick coffee break.</h1>
-					<p>Our ' . get_site_option('site_name') . ' network is undergoing maintenance that will last <strong>' . $this->retryafter . ' minutes at the most</strong>.</p>
+					<p>Our ' . get_site_option( 'site_name' ) . ' network is undergoing maintenance that will last <strong>' . $this->retryafter . ' minutes at the most</strong>.</p>
 					<p>We apologize for the inconvenience, and we are doing out best to get things back to working order.</p>
 				</div>
 			</div>
@@ -71,72 +73,127 @@ class wpms_sitemaint {
 	}
 
 	function apply_settings($settings = false) {
-		if (!$settings) $settings = get_site_option('wpms_sitemaint_settings');
-		if (is_array($settings)) foreach($settings as $setting => $value) $this->$setting = $value;
-		else $this->set_defaults();
+		if ( ! $settings ) {
+			$settings = get_site_option( 'wpms_sitemaint_settings' );
+		}
+
+		if ( is_array( $settings ) ) {
+			foreach( $settings as $setting => $value ) {
+				$this->$setting = $value;
+			}
+		}
+		else {
+			$this->set_defaults();
+		}
 	}
 
 	function save_settings() {
 		global $wpdb, $updated, $configerror;
 		check_admin_referer();
 		// validate all input!
-		if (preg_match('/^[0-9]+$/',$_POST['sitemaint'])) $sitemaint = intval($_POST['sitemaint']);
-		else $configerror[] = 'sitemaint must be numeric. Default: 0 (Normal site operation)';
+		if ( preg_match( '/^[0-9]+$/', $_POST['sitemaint'] ) ) {
+			$sitemaint = intval( $_POST['sitemaint'] );
+		}
+		else {
+			$configerror[] = 'sitemaint must be numeric. Default: 0 (Normal site operation)';
+		}
 
-		if ($_POST['retryafter']>0) $retryafter = intval($_POST['retryafter']);
-		else $configerror[] = 'Retry After must be greater than zero minutes. Default: 60';
+		if ( $_POST['retryafter'] > 0 ) {
+			$retryafter = intval($_POST['retryafter']);
+		}
+		else {
+			$configerror[] = 'Retry After must be greater than zero minutes. Default: 60';
+		}
 
 		//$wpdb->escape() or addslashes not needed -- string is compacted into an array then serialized before saving in db
-		if (trim($_POST['message'])) $message = (get_magic_quotes_gpc()) ? stripslashes(trim($_POST['message'])) : trim($_POST['message']);
-		else $configerror[] = 'Please enter a message to display to visitors when the site is down. (HTML OK!)';
+		if ( trim( $_POST['message'] ) ) {
+			$message = ( get_magic_quotes_gpc() ) ? stripslashes( trim( $_POST['message'] ) ) : trim( $_POST['message'] );
+		}
+		else {
+			$configerror[] = 'Please enter a message to display to visitors when the site is down. (HTML OK!)';
+		}
 
-		if (is_array($configerror)) return $configerror;
+		if ( is_array( $configerror ) ) {
+			return $configerror;
+		}
 
 		$settings = compact('sitemaint','retryafter','message');
-		foreach($settings as $setting => $value) if ($this->$setting != $value) $changed = true;
-		if ($changed) {
-			update_site_option('wpms_sitemaint_settings', $settings);
-			$this->apply_settings($settings);
+
+		foreach( $settings as $setting => $value ) {
+			if ( $this->$setting != $value ) {
+				$changed = true;
+			}
+		}
+
+		if ( $changed ) {
+			update_site_option( 'wpms_sitemaint_settings', $settings );
+			$this->apply_settings( $settings );
 			return $updated = true;
 		}
 	}
 
 	function delete_settings() {
 		global $wpdb, $updated, $wp_object_cache;
-		$settings = get_site_option('wpms_sitemaint_settings');
-		if ($settings) {
-			$wpdb->query("DELETE FROM $wpdb->sitemeta WHERE `meta_key` = 'wpms_sitemaint_settings'");
-			if (is_object($wp_object_cache) && $wp_object_cache->cache_enabled == true) wp_cache_delete('wpms_sitemaint_settings','site-options');
+		$settings = get_site_option( 'wpms_sitemaint_settings' );
+		if ( $settings ) {
+			$wpdb->query( "DELETE FROM $wpdb->sitemeta WHERE `meta_key` = 'wpms_sitemaint_settings'" );
+
+			if ( is_object( $wp_object_cache ) && $wp_object_cache->cache_enabled == true ) {
+				wp_cache_delete('wpms_sitemaint_settings','site-options');
+			}
+
 			$this->set_defaults();
 			return $updated = true;
 		}
 	}
 
-	function urlend($end) {
-		return (substr($_SERVER['REQUEST_URI'], strlen($end)*-1) == $end) ? true : false;
+	function urlend( $end ) {
+		return ( substr( $_SERVER['REQUEST_URI'], strlen($end) * -1 ) == $end) ? true : false;
 	}
 
 	function shutdown() {
 		global $wpdb;
 		get_currentuserinfo();
-		if (is_super_admin()) return; //allow admin to use site normally
-		if ($wpdb->blogid == 1 && $this->urlend('wp-login.php')) return; //I told you *not* to log out, but you did anyway. duh!
-		if ($this->sitemaint == 2 && $wpdb->blogid != 1) return; //user blogs on, main blog off
-		if ($this->sitemaint == 1 && $wpdb->blogid == 1) return; //main blog on, user blogs off
+		if ( is_super_admin() ) {
+			return; //allow admin to use site normally
+		}
+
+		if ( $wpdb->blogid == 1 && $this->urlend( 'wp-login.php' ) ) {
+			return; //I told you *not* to log out, but you did anyway. duh!
+		}
+
+		if ( $this->sitemaint == 2 && $wpdb->blogid != 1 ) {
+			return; //user blogs on, main blog off
+		}
+		if ( $this->sitemaint == 1 && $wpdb->blogid == 1 ) {
+			return; //main blog on, user blogs off
+		}
+
 		header('HTTP/1.1 503 Service Unavailable');
-		header('Retry-After: '.$this->retryafter*60); //seconds
-		if (!$this->urlend('feed/') && !$this->urlend('trackback/') && !$this->urlend('xmlrpc.php')) echo stripslashes($this->message);
+		header('Retry-After: ' . $this->retryafter * 60 ); //seconds
+		if ( !$this->urlend( 'feed/' ) && !$this->urlend( 'trackback/' ) && !$dthis->urlend( 'xmlrpc.php' ) ) {
+			echo stripslashes($this->message);
+		}
 		exit();
 	}
 
 	function adminpage() {
 		global $updated, $configerror;
 		get_currentuserinfo();
-		if (!is_super_admin()) die(__('<p>You do not have permission to access this page.</p>'));
-		if ($_POST['action'] == 'update') {
-			if ($_POST['reset'] != 1) $this->save_settings();
-			else $this->delete_settings();
+
+		if ( ! is_super_admin() ) {
+			die(__('<p>You do not have permission to access this page.</p>'));
 		}
+
+		if ( $_POST['action'] == 'update' ) {
+			if ( empty( $_POST['reset'] ) ) {
+				$this->save_settings();
+			}
+			else {
+				$this->delete_settings();
+			}
+		}
+
 		if ($updated) { ?>
 <div id="message" class="updated fade"><p><?php _e('Options saved.') ?></p></div>
 <?php	} elseif (is_array($configerror)) { ?>
@@ -180,4 +237,6 @@ if ($this->sitemaint == 3) { ?>
 }
 
 //begin execution
-if (defined('ABSPATH')) $wpms_sitemaint = new wpms_sitemaint();
+if ( defined( 'ABSPATH' ) ) {
+	$wpms_sitemaint = new wpms_sitemaint();
+}
