@@ -50,30 +50,29 @@ class wpms_sitemaint {
 		add_submenu_page( 'settings.php', __('WPMS Site Shutdown'), __('WPMS Sitedown'), 'manage_network_options', 'wpms_site_maint', array( &$this, 'adminpage' ) );
 	}
 
+	function get_message() {
+		return '<!DOCTYPE html>
+<html>
+	<head>
+		<title>' . get_site_option( 'site_name' ) . ' is undergoing routine maintenance</title>
+		<meta http-equiv="Content-Type" content="' . get_bloginfo( 'html_type' ) . '; ' . get_bloginfo( 'charset' ) . '" />
+		<link rel="stylesheet" href="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/css/style.css" type="text/css" media="screen" />
+	</head>
+  <body>
+	  <section id="content">
+	    <h1>We are currently under maintenance.</h1>
+			<p>Our ' . get_site_option( 'site_name' ) . ' network is undergoing maintenance that will last <strong>' . $this->retryafter . ' minutes at the most</strong>.</p>
+			<p>We apologize for the inconvenience, and we are working to bring you an updated and improved site.</p>
+	  </section>
+	</body>
+</html>';
+	}
+
 	function set_defaults() {
 		// do not edit here - use the admin screen
 		$this->sitemaint = 0;
 		$this->retryafter = 60;
-		$this->message = '
-		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-		<html xmlns="http://www.w3.org/1999/xhtml">
-		<head>
-			<title>' . get_site_option( 'site_name' ) . ' is undergoing routine maintenance</title>
-			<meta http-equiv="Content-Type" content="' . get_bloginfo( 'html_type' ) . '; ' . get_bloginfo( 'charset' ) . '" />
-			<link rel="stylesheet" href="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/css/style.css" type="text/css" media="screen" />
-		</head>
-		<body>
-
-			<div id="content-outer">
-				<div id="content">
-					<img src="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/images/coffee_machine-256.png" class="motivation-maker" />
-					<h1>We are on a quick coffee break.</h1>
-					<p>Our ' . get_site_option( 'site_name' ) . ' network is undergoing maintenance that will last <strong>' . $this->retryafter . ' minutes at the most</strong>.</p>
-					<p>We apologize for the inconvenience, and we are doing out best to get things back to working order.</p>
-				</div>
-			</div>
-		</body>
-		</html>';
+		$this->message = $this->get_message();
 	}
 
 	function apply_settings($settings = false) {
