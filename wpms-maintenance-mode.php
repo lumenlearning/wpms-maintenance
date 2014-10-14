@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: WPMS Site Maintenance Mode
-Plugin URI: https://github.com/lumenlearning/wpms-site-maintenance
-Description: Provides an interface to make a WPMS network unavailable to everyone during maintenance, except the admin.
+Plugin Name: WPMS Maintenance Mode
+Plugin URI: https://github.com/lumenlearning/wpms-maintenance
+Description: Provides an interface to make a WPMS network unavailable to everyone during maintenance, except the admin. This is a fork of <a href="https://wordpress.org/plugins/wpms-site-maintenance-mode/">WPMS Site Maintenance mode</a>.
 Author: Lumen Learning
 Original Author: I.T. Damager, 7 Media Web Solutions, LLC
 Author URI: http://lumenlearning.com/
@@ -10,30 +10,30 @@ Version: 0.1
 License: GPL
 */
 
-class wpms_sitemaint {
+class wpms_maintenance {
 
-	var $sitemaint;
+	var $maintenance;
 	var $retryafter;
 	var $message;
 	var $updated;
 	var $configerror;
 
-	function wpms_sitemaint() {
-		add_action( 'init', array( &$this,'wpms_sitemaint_init' ), 1 );
+	function wpms_maintenance() {
+		add_action( 'init', array( &$this,'wpms_maintenance_init' ), 1 );
 		add_action( 'network_admin_menu', array( &$this, 'add_admin_subpanel' ) );
 	}
 
-	function wpms_sitemaint_init() {
+	function wpms_maintenance_init() {
 		$this->updated = false;
 		$this->configerror = array();
 		$this->apply_settings();
-		if ( $this->sitemaint ) {
+		if ( $this->maintenance ) {
 			return $this->shutdown();
 		}
 	}
 
 	function add_admin_subpanel() {
-		add_submenu_page( 'settings.php', __('WPMS Site Shutdown'), __('WPMS Sitedown'), 'manage_network_options', 'wpms_site_maint', array( &$this, 'adminpage' ) );
+		add_submenu_page( 'settings.php', __('WPMS Maintenance Shutdown'), __('WPMS Maintenance'), 'manage_network_options', 'wpms_site_maint', array( &$this, 'adminpage' ) );
 	}
 
 	function get_message() {
@@ -42,7 +42,7 @@ class wpms_sitemaint {
 	<head>
 		<title>' . get_site_option( 'site_name' ) . ' is undergoing routine maintenance</title>
 		<meta http-equiv="Content-Type" content="' . get_bloginfo( 'html_type' ) . '; ' . get_bloginfo( 'charset' ) . '" />
-		<link rel="stylesheet" href="' . WP_PLUGIN_URL . '/wpms-site-maintenance-mode/css/style.css" type="text/css" media="screen" />
+		<link rel="stylesheet" href="' . WP_PLUGIN_URL . '/wpms-maintenance-mode/css/style.css" type="text/css" media="screen" />
 	</head>
   <body>
 	  <section id="content">
@@ -56,14 +56,14 @@ class wpms_sitemaint {
 
 	function set_defaults() {
 		// do not edit here - use the admin screen
-		$this->sitemaint = 0;
+		$this->maintenance = 0;
 		$this->retryafter = 60;
 		$this->message = $this->get_message();
 	}
 
 	function apply_settings($settings = false) {
 		if ( ! $settings ) {
-			$settings = get_site_option( 'wpms_sitemaint_settings' );
+			$settings = get_site_option( 'wpms_maintenance_settings' );
 		}
 
 		if ( is_array( $settings ) ) {
@@ -79,16 +79,16 @@ class wpms_sitemaint {
 	function save_settings() {
 		global $wpdb;
 
-		if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'wpms-site-maintenance-mode' ) ) {
+		if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'wpms-maintenance-mode' ) ) {
 			die('Invalid nonce');
 		}
 
 		// validate all input!
-		if ( preg_match( '/^[0-9]+$/', $_POST['sitemaint'] ) ) {
-			$sitemaint = intval( $_POST['sitemaint'] );
+		if ( preg_match( '/^[0-9]+$/', $_POST['maintenance'] ) ) {
+			$maintenance = intval( $_POST['maintenance'] );
 		}
 		else {
-			$this->configerror[] = 'sitemaint must be numeric. Default: 0 (Normal site operation)';
+			$this->configerror[] = 'maintenance must be numeric. Default: 0 (Normal site operation)';
 		}
 
 		if ( $_POST['retryafter'] > 0 ) {
@@ -110,7 +110,7 @@ class wpms_sitemaint {
 			return $this->configerror;
 		}
 
-		$settings = compact('sitemaint','retryafter','message');
+		$settings = compact('maintenance','retryafter','message');
 
 		$changed = false;
 		foreach( $settings as $setting => $value ) {
@@ -120,7 +120,7 @@ class wpms_sitemaint {
 		}
 
 		if ( $changed ) {
-			update_site_option( 'wpms_sitemaint_settings', $settings );
+			update_site_option( 'wpms_maintenance_settings', $settings );
 			$this->apply_settings( $settings );
 			return $this->updated = true;
 		}
@@ -128,10 +128,10 @@ class wpms_sitemaint {
 
 	function delete_settings() {
 		global $wpdb;
-		$settings = get_site_option( 'wpms_sitemaint_settings' );
+		$settings = get_site_option( 'wpms_maintenance_settings' );
 		if ( $settings ) {
-			$wpdb->query( "DELETE FROM $wpdb->sitemeta WHERE `meta_key` = 'wpms_sitemaint_settings'" );
-			wp_cache_delete('wpms_sitemaint_settings','site-options');
+			$wpdb->query( "DELETE FROM $wpdb->sitemeta WHERE `meta_key` = 'wpms_maintenance_settings'" );
+			wp_cache_delete('wpms_maintenance_settings','site-options');
 
 			$this->set_defaults();
 			return $this->updated = true;
@@ -153,10 +153,10 @@ class wpms_sitemaint {
 			return; //I told you *not* to log out, but you did anyway. duh!
 		}
 
-		if ( $this->sitemaint == 2 && $wpdb->blogid != 1 ) {
+		if ( $this->maintenance == 2 && $wpdb->blogid != 1 ) {
 			return; //user blogs on, main blog off
 		}
-		if ( $this->sitemaint == 1 && $wpdb->blogid == 1 ) {
+		if ( $this->maintenance == 1 && $wpdb->blogid == 1 ) {
 			return; //main blog on, user blogs off
 		}
 
@@ -192,7 +192,7 @@ class wpms_sitemaint {
 			print '<div class="error"><p>' . implode('<br />',$this->configerror) . '</p></div>';
 		}
 
-		switch ( $this->sitemaint ) {
+		switch ( $this->maintenance ) {
 			case 1:
 	  		print '<div class="error"><p>' . __('WARNING: YOUR USER BLOGS ARE CURRENTLY DOWN!') . '</p></div>';
 	  		break;
@@ -216,12 +216,12 @@ class wpms_sitemaint {
 		  <p><?php _e('Choose site UP or DOWN, retry time (in minutes) and your message.'); ?></p>
 		  <p><em><?php _e('The site will remain fully functional for admin users.'); ?> <span style="color:#CC0000;"><?php _e('Do not log out while the site is down!'); ?></span><br />
 		  <?php _e('If you log out (and lock yourself out of the site) visit'); ?> <?php bloginfo_rss('url') ?>/wp-login.php <?php _e('to log back in.'); ?></em></p>
-		  <form name="sitemaintform" method="post" action="">
-		  	<input type="hidden" name="_wpnonce" value="<?php print wp_create_nonce('wpms-site-maintenance-mode'); ?>" />
-		    <p><label><input type="radio" name="sitemaint" value="0"<?php checked(0, $this->sitemaint); ?> /> <?php _e('SITE UP (Normal Operation)'); ?></label><br />
-		       <label><input type="radio" name="sitemaint" value="1"<?php checked(1, $this->sitemaint); ?> /> <?php _e('USER BLOGS DOWN, MAIN BLOG UP!'); ?></label><br />
-		       <label><input type="radio" name="sitemaint" value="2"<?php checked(2, $this->sitemaint); ?> /> <?php _e('MAIN BLOG DOWN, USER BLOGS UP!'); ?></label><br />
-		       <label><input type="radio" name="sitemaint" value="3"<?php checked(3, $this->sitemaint); ?> /> <?php _e('ENTIRE SITE DOWN!'); ?></label></p>
+		  <form name="maintenanceform" method="post" action="">
+		  	<input type="hidden" name="_wpnonce" value="<?php print wp_create_nonce('wpms-maintenance-mode'); ?>" />
+		    <p><label><input type="radio" name="maintenance" value="0"<?php checked(0, $this->maintenance); ?> /> <?php _e('SITE UP (Normal Operation)'); ?></label><br />
+		       <label><input type="radio" name="maintenance" value="1"<?php checked(1, $this->maintenance); ?> /> <?php _e('USER BLOGS DOWN, MAIN BLOG UP!'); ?></label><br />
+		       <label><input type="radio" name="maintenance" value="2"<?php checked(2, $this->maintenance); ?> /> <?php _e('MAIN BLOG DOWN, USER BLOGS UP!'); ?></label><br />
+		       <label><input type="radio" name="maintenance" value="3"<?php checked(3, $this->maintenance); ?> /> <?php _e('ENTIRE SITE DOWN!'); ?></label></p>
 		    <p><label><?php _e('Retry After'); ?> <input name="retryafter" type="text" id="retryafter" value="<?php echo $this->retryafter; ?>" size="3" /> <?php _e('minutes.'); ?></label></p>
 		    <p><label><?php _e('HTML page displayed to site visitors:'); ?><br />
 		      <textarea name="message" cols="125" rows="10" id="message"><?php echo stripslashes($this->message); ?></textarea></label></p>
@@ -240,5 +240,5 @@ class wpms_sitemaint {
 
 //begin execution
 if ( defined( 'ABSPATH' ) ) {
-	$wpms_sitemaint = new wpms_sitemaint();
+	$wpms_maintenance = new wpms_maintenance();
 }
