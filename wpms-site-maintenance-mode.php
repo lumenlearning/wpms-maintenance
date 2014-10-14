@@ -214,7 +214,7 @@ if ($this->sitemaint == 3) { ?>
   <p><?php _e('This plugin shuts down your site for maintenance by sending feed readers, bots, and browsers an http response code 503 and the Retry-After header'); ?> (<a href="ftp://ftp.isi.edu/in-notes/rfc2616.txt" target="_blank">rfc2616</a>). <?php _e('It displays your message except when feeds, trackbacks, or other xml pages are requested.'); ?></p>
   <p><?php _e('Choose site UP or DOWN, retry time (in minutes) and your message.'); ?></p>
   <p><em><?php _e('The site will remain fully functional for admin users.'); ?> <span style="color:#CC0000;"><?php _e('Do not log out while the site is down!'); ?></span><br />
-  <?php _e('If you log out (and lock yourself out of the site) visit'); ?> <?php bloginfo_rss('home') ?>/wp-login.php <?php _e('to log back in.'); ?></em></p>
+  <?php _e('If you log out (and lock yourself out of the site) visit'); ?> <?php bloginfo_rss('url') ?>/wp-login.php <?php _e('to log back in.'); ?></em></p>
   <form name="sitemaintform" method="post" action="">
     <p><label><input type="radio" name="sitemaint" value="0"<?php checked(0, $this->sitemaint); ?> /> <?php _e('SITE UP (Normal Operation)'); ?></label><br />
        <label><input type="radio" name="sitemaint" value="1"<?php checked(1, $this->sitemaint); ?> /> <?php _e('USER BLOGS DOWN, MAIN BLOG UP!'); ?></label><br />
