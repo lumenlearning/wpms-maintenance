@@ -30,6 +30,7 @@ class wpms_sitemaint {
 	var $retryafter;
 	var $message;
 	var $updated;
+	var $configerror;
 
 	function wpms_sitemaint() {
 		add_action( 'init', array( &$this,'wpms_sitemaint_init' ), 1 );
@@ -38,6 +39,7 @@ class wpms_sitemaint {
 
 	function wpms_sitemaint_init() {
 		$this->updated = false;
+		$this->configerror = array();
 		$this->apply_settings();
 		if ( $this->sitemaint ) {
 			return $this->shutdown();
@@ -90,7 +92,7 @@ class wpms_sitemaint {
 	}
 
 	function save_settings() {
-		global $wpdb, $configerror;
+		global $wpdb;
 
 		if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'wpms-site-maintenance-mode' ) ) {
 			die('Invalid nonce');
@@ -101,14 +103,14 @@ class wpms_sitemaint {
 			$sitemaint = intval( $_POST['sitemaint'] );
 		}
 		else {
-			$configerror[] = 'sitemaint must be numeric. Default: 0 (Normal site operation)';
+			$this->configerror[] = 'sitemaint must be numeric. Default: 0 (Normal site operation)';
 		}
 
 		if ( $_POST['retryafter'] > 0 ) {
 			$retryafter = intval($_POST['retryafter']);
 		}
 		else {
-			$configerror[] = 'Retry After must be greater than zero minutes. Default: 60';
+			$this->configerror[] = 'Retry After must be greater than zero minutes. Default: 60';
 		}
 
 		//$wpdb->escape() or addslashes not needed -- string is compacted into an array then serialized before saving in db
@@ -116,11 +118,11 @@ class wpms_sitemaint {
 			$message = ( get_magic_quotes_gpc() ) ? stripslashes( trim( $_POST['message'] ) ) : trim( $_POST['message'] );
 		}
 		else {
-			$configerror[] = 'Please enter a message to display to visitors when the site is down. (HTML OK!)';
+			$this->configerror[] = 'Please enter a message to display to visitors when the site is down. (HTML OK!)';
 		}
 
-		if ( is_array( $configerror ) ) {
-			return $configerror;
+		if ( ! empty( $this->configerror ) ) {
+			return $this->configerror;
 		}
 
 		$settings = compact('sitemaint','retryafter','message');
@@ -184,7 +186,6 @@ class wpms_sitemaint {
 	}
 
 	function adminpage() {
-		global $configerror;
 		get_currentuserinfo();
 
 		if ( ! is_super_admin() ) {
@@ -204,8 +205,8 @@ class wpms_sitemaint {
 			print '<div id="message" class="updated fade"><p>' . __('Options saved.') . '</p></div>';
 		}
 
-		if ( !empty( $configerror ) ) {
-			print '<div class="error"><p>' . implode('<br />',$configerror) . '</p></div>';
+		if ( !empty( $this->configerror ) ) {
+			print '<div class="error"><p>' . implode('<br />',$this->configerror) . '</p></div>';
 		}
 
 		switch ( $this->sitemaint ) {
