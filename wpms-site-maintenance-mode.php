@@ -141,14 +141,11 @@ class wpms_sitemaint {
 	}
 
 	function delete_settings() {
-		global $wpdb, $wp_object_cache;
+		global $wpdb;
 		$settings = get_site_option( 'wpms_sitemaint_settings' );
 		if ( $settings ) {
 			$wpdb->query( "DELETE FROM $wpdb->sitemeta WHERE `meta_key` = 'wpms_sitemaint_settings'" );
-
-			if ( is_object( $wp_object_cache ) && $wp_object_cache->cache_enabled == true ) {
-				wp_cache_delete('wpms_sitemaint_settings','site-options');
-			}
+			wp_cache_delete('wpms_sitemaint_settings','site-options');
 
 			$this->set_defaults();
 			return $this->updated = true;
