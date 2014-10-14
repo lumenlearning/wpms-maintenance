@@ -1,12 +1,12 @@
 <?php
 /*
 Plugin Name: WPMS Site Maintenance Mode
-Plugin URI: http://wordpress.org/extend/plugins/wpms-site-maintenance-mode/
+Plugin URI: https://github.com/lumenlearning/wpms-site-maintenance
 Description: Provides an interface to make a WPMS network unavailable to everyone during maintenance, except the admin.
-Original Author: I.T. Damager
-Author: 7 Media Web Solutions, LLC
-Author URI: http://www.7mediaws.org/
-Version: 1.0.3
+Author: Lumen Learning
+Original Author: I.T. Damager, 7 Media Web Solutions, LLC
+Author URI: http://lumenlearning.com/
+Version: 0.1
 License: GPL
 */
 
