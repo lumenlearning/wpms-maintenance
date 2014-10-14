@@ -29,6 +29,7 @@ class wpms_sitemaint {
 	var $sitemaint;
 	var $retryafter;
 	var $message;
+	var $updated;
 
 	function wpms_sitemaint() {
 		add_action( 'init', array( &$this,'wpms_sitemaint_init' ), 1 );
@@ -36,6 +37,7 @@ class wpms_sitemaint {
 	}
 
 	function wpms_sitemaint_init() {
+		$this->updated = false;
 		$this->apply_settings();
 		if ( $this->sitemaint ) {
 			return $this->shutdown();
@@ -88,7 +90,7 @@ class wpms_sitemaint {
 	}
 
 	function save_settings() {
-		global $wpdb, $updated, $configerror;
+		global $wpdb, $configerror;
 
 		if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'wpms-site-maintenance-mode' ) ) {
 			die('Invalid nonce');
@@ -132,12 +134,12 @@ class wpms_sitemaint {
 		if ( $changed ) {
 			update_site_option( 'wpms_sitemaint_settings', $settings );
 			$this->apply_settings( $settings );
-			return $updated = true;
+			return $this->updated = true;
 		}
 	}
 
 	function delete_settings() {
-		global $wpdb, $updated, $wp_object_cache;
+		global $wpdb, $wp_object_cache;
 		$settings = get_site_option( 'wpms_sitemaint_settings' );
 		if ( $settings ) {
 			$wpdb->query( "DELETE FROM $wpdb->sitemeta WHERE `meta_key` = 'wpms_sitemaint_settings'" );
@@ -147,7 +149,7 @@ class wpms_sitemaint {
 			}
 
 			$this->set_defaults();
-			return $updated = true;
+			return $this->updated = true;
 		}
 	}
 
@@ -182,7 +184,7 @@ class wpms_sitemaint {
 	}
 
 	function adminpage() {
-		global $updated, $configerror;
+		global $configerror;
 		get_currentuserinfo();
 
 		if ( ! is_super_admin() ) {
@@ -198,7 +200,7 @@ class wpms_sitemaint {
 			}
 		}
 
-		if ($updated) { ?>
+		if ($this->updated) { ?>
 <div id="message" class="updated fade"><p><?php _e('Options saved.') ?></p></div>
 <?php	} elseif (is_array($configerror)) { ?>
 <div class="error"><p><?php echo implode('<br />',$configerror); ?></p></div>
